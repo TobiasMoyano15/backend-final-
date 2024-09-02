@@ -1,4 +1,15 @@
 import { userService } from '../Service/service.js';
+import nodemailer from 'nodemailer';
+import moment from 'moment';
+
+// Configura tu transportador de correo
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'tu_email@gmail.com',
+    pass: 'tu_contraseña'
+  }
+});
 
 class UserController {
     constructor() {
@@ -155,6 +166,37 @@ class UserController {
 
             await this.userService.updateUser({ _id: userId }, { role: 'premium' });
             res.status(200).send({ status: 'success', message: 'Usuario actualizado a premium' });
+        } catch (error) {
+            res.status(500).send({ status: 'error', message: error.message });
+        }
+    };
+
+    // Nuevo método para eliminar usuarios inactivos
+    deleteInactiveUsers = async (req, res) => {
+        try {
+            const cutoffDate = moment().subtract(2, 'days').toDate();
+            const inactiveUsers = await this.userService.getUsers({ lastLogin: { $lt: cutoffDate } });
+
+            // Elimina los usuarios inactivos
+            await this.userService.deleteUsers({ lastLogin: { $lt: cutoffDate } });
+
+            // Enviar correos a los usuarios eliminados
+            inactiveUsers.forEach(user => {
+                const mailOptions = {
+                    from: 'tu_email@gmail.com',
+                    to: user.email,
+                    subject: 'Cuenta eliminada',
+                    text: 'Tu cuenta ha sido eliminada por inactividad.'
+                };
+
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.log('Error al enviar correo: ', error);
+                    }
+                });
+            });
+
+            res.json({ status: 'success', message: 'Usuarios inactivos eliminados' });
         } catch (error) {
             res.status(500).send({ status: 'error', message: error.message });
         }
