@@ -4,22 +4,17 @@ import cartRouter from './routes/CartRouter.js';
 import viewsRouter from './routes/ViewRouter.js';
 import path from 'path';
 import multer from 'multer'; 
-import { engine } from 'express-handlebars'; // Corrección de la importación
+import { engine } from 'express-handlebars';
 import { createServer } from 'http'; 
 import { Server } from 'socket.io';
 import { swaggerUi, swaggerDocs } from './swagger.js'; // Corrección de la ruta
 
 const app = express();
-
 const httpServer = createServer(app); 
-
 const io = new Server(httpServer); 
 
-const __dirname = path.resolve();
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public'))); // Ruta correcta para los archivos estáticos
+// Obtener la ruta del directorio actual de forma compatible con ES Modules
+const __dirname = path.resolve(path.dirname(''));
 
 // Configuración del motor de plantillas
 app.engine('hbs', engine({ 
@@ -30,6 +25,9 @@ app.engine('hbs', engine({
 
 app.set('views', path.join(__dirname, 'views')); // Ruta para las vistas
 app.set('view engine', 'hbs');
+
+// Verificación de la ruta del directorio de vistas
+console.log('Views directory:', path.join(__dirname, 'views'));
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {

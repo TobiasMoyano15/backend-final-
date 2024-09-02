@@ -102,6 +102,63 @@ class UserController {
             res.status(500).send({ status: 'error', message: error.message });
         }
     };
+
+    // Nuevo método para subir documentos del usuario
+    uploadUserDocument = async (req, res) => {
+        const { uid } = req.params;
+        try {
+            const userFound = await this.userService.getUser({ _id: uid });
+            if (!userFound) {
+                return res.status(404).send({ status: 'error', message: 'User not found' });
+            }
+
+            // Suponiendo que req.files contiene los documentos subidos
+            const { files } = req;
+            const documentType = req.body.suffix;
+
+            if (!files || !documentType) {
+                return res.status(400).send({ status: 'error', message: 'Faltan documentos o tipo de documento' });
+            }
+
+            // Lógica para manejar la carga de documentos
+            const result = await this.userService.uploadDocument(uid, documentType, files);
+            res.status(200).send({ status: 'success', message: 'Documento subido correctamente', payload: result });
+        } catch (error) {
+            res.status(500).send({ status: 'error', message: error.message });
+        }
+    };
+
+    // Nuevo método para verificar si el usuario puede ser premium
+    checkPremiumStatus = async (req, res) => {
+        const { uid } = req.params;
+        try {
+            const userFound = await this.userService.getUser({ _id: uid });
+            if (!userFound) {
+                return res.status(404).send({ status: 'error', message: 'User not found' });
+            }
+
+            const needsUpgrade = await this.userService.checkPremiumEligibility(uid);
+            res.status(200).send({ status: 'success', needsUpgrade });
+        } catch (error) {
+            res.status(500).send({ status: 'error', message: error.message });
+        }
+    };
+
+    // Nuevo método para actualizar el usuario a premium
+    upgradeToPremium = async (req, res) => {
+        const { userId } = req.body;
+        try {
+            const userFound = await this.userService.getUser({ _id: userId });
+            if (!userFound) {
+                return res.status(404).send({ status: 'error', message: 'User not found' });
+            }
+
+            await this.userService.updateUser({ _id: userId }, { role: 'premium' });
+            res.status(200).send({ status: 'success', message: 'Usuario actualizado a premium' });
+        } catch (error) {
+            res.status(500).send({ status: 'error', message: error.message });
+        }
+    };
 }
 
 export default UserController;

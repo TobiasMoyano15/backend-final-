@@ -7,7 +7,10 @@ const {
     getUsers,
     getUserBy,
     updateUser,
-    removeUser
+    removeUser,
+    uploadUserDocument,
+    checkPremiumStatus,
+    upgradeToPremium
 } = new UserController();
 
 router.post('/', createUser);
@@ -15,5 +18,14 @@ router.get('/', getUsers);
 router.get('/:uid', getUserBy);
 router.put('/:uid', updateUser);
 router.delete('/:uid', removeUser);
+
+// Nuevo endpoint para subir documentos del usuario
+router.post('/:uid/documents', uploadUserDocument);
+
+// Nuevo endpoint para verificar si el usuario puede ser premium
+router.get('/:uid/check-premium-status', checkPremiumStatus);
+
+// Nuevo endpoint para actualizar el usuario a premium
+router.post('/upgrade-to-premium', upgradeToPremium);
 
 export default router;
